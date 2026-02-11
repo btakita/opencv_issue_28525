@@ -1,0 +1,26 @@
+name: "Setup NVIDIA user-space libs"
+description: "Install libnvidia-decode and libnvidia-encode packages on Ubuntu runners"
+inputs:
+  version:
+    description: "Driver package version suffix (e.g. 535, 550)"
+    required: false
+    default: "535"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: Jimver/cuda-toolkit@master
+      with:
+        cuda: '13.0.0'
+
+    - name: Install packages
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo apt-get install -y \
+          "libnvidia-decode-${{ inputs.version }}" \
+          "libnvidia-encode-${{ inputs.version }}"
+        ldconfig -p | grep -E 'nvcuvid|nvidia-encode' || true
+        test -e /usr/lib/x86_64-linux-gnu/libcuda.so.1
+        test -e /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1
+        test -e /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1

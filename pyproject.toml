@@ -1,0 +1,69 @@
+[project]
+name = "opencv_issue_28525"
+version = "0.1.0"
+description = "Reproduction of https://github.com/opencv/opencv/issues/28525"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "hysts" }]
+requires-python = ">=3.10"
+dependencies = [
+    "nvidia-cuda-runtime-cu12",
+    "nvidia-cufft-cu12",
+    "nvidia-cublas-cu12",
+    "opencv_contrib_python_rolling",
+    "python-dotenv==1.2.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/btakita/opencv_issue_28525"
+
+[project.optional-dependencies]
+demo = ["gradio>=5.0.0"]
+dev = [
+    "poethepoet==0.40.0",
+    "poethepoet_tasks==0.3.0",
+    "pre-commit>=3.0.0",
+    "pytest>=9.0.0",
+    "ruff>=0.8.0",
+    "ty==0.0.14",
+]
+
+[dependency-groups]
+dev = ["opencv_issue_28525[dev]"]
+legacy = ["opencv_issue_28525[legacy]"]
+
+[tool.uv]
+default-groups = ["dev"]
+python-preference = "only-managed"
+package = true
+
+[tool.uv.sources]
+opencv_contrib_python_rolling = { url = "https://github.com/cudawarped/opencv-python-cuda-wheels/releases/download/4.13.0.20250811/opencv_contrib_python_rolling-4.13.0.20250811-cp37-abi3-linux_x86_64.whl" }
+
+[build-system]
+requires = ["uv_build>=0.9.21,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501", "B028", "B905"]
+
+[tool.poe]
+executor = { type = "uv", no-project = true }
+verbosity = 0
+include_script = ["opencv_issue_28525.tasks:tasks"]
+
+[tool.poe.tasks]
+init = ["sync", "link_include"]
+precommit = ["sync", "ty_check", "ruff_fix", "test"]
+ruff_fix = "ruff check --fix"
+sync = "uv sync"
+test = "pytest"
+ty_check = "ty check src"
+
+[tool.ty.src]
+exclude = [".venv/**", "venv/**", "build/**"]
